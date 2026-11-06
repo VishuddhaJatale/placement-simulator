@@ -27,33 +27,26 @@ Local Vite frontend runs on **port 21000**, backend on **port 7000**. The Docker
 ## Project Structure
 
 ```
-placement-simulator-mern/
+placement-simulator/
 ├── docker-compose.yml
-├── server/                     # Express + MongoDB backend (port 7000)
-│   ├── config/                 # env, db connection
-│   ├── models/                 # User, Interview, Question, Response, Report, Session
-│   ├── controllers/            # auth, interview, report, history, profile
-│   ├── routes/
-│   ├── middleware/             # JWT auth, error handler, multer upload
-│   ├── services/
-│   │   ├── ai/                 # aiService facade + ollama/grok/gemini providers
-│   │   ├── interview/          # interviewEngine (adaptive Q&A flow)
-│   │   └── report/             # reportGenerator (scores + PDF)
-│   ├── prompts/                # promptBuilder.js
-│   ├── knowledge/               # topics.js (DSA/CS/Web/System Design/HR banks)
-│   ├── sockets/                # Socket.io live-interview events
-│   ├── uploads/                # resume uploads (gitignored)
-│   ├── reports/                # generated PDF reports (gitignored)
-│   └── server.js / app.js
-└── client/                     # React + Vite frontend (port 5002)
-    └── src/
-        ├── pages/               # Landing, Login, Register, Dashboard,
-        │                        # CreateInterview, Interview, Coding, Report,
-        │                        # History, Profile, NotFound
-        ├── components/          # layout, chat/interview, coding, charts, ui
-        ├── context/              # AuthContext, ThemeContext
-        ├── hooks/                # useAuth, useInterview, useSpeech
-        └── services/             # api.js, authService.js, interviewService.js
+├── Dockerfile                 # React + Vite frontend image
+├── src/                       # React frontend (repository root)
+│   ├── pages/
+│   ├── components/
+│   ├── context/
+│   ├── hooks/
+│   └── services/
+├── package.json
+├── package-lock.json
+└── server/                    # Express + MongoDB backend
+    ├── config/
+    ├── controllers/
+    ├── models/
+    ├── routes/
+    ├── services/
+    ├── sockets/
+    ├── uploads/               # runtime data (not committed)
+    └── reports/               # runtime data (not committed)
 ```
 
 ---
@@ -61,61 +54,51 @@ placement-simulator-mern/
 ## Quick Start (local, no Docker)
 
 ### 1. MongoDB
-Run MongoDB locally, or use a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
-and put the connection string in `server/.env`.
+Run MongoDB locally, or use a MongoDB Atlas connection string in `server/.env`.
 
 ### 2. Backend
 
 ```bash
 cd server
 cp .env.example .env
-# fill in JWT secrets and at least one AI provider key
+# Set JWT_SECRET, JWT_REFRESH_SECRET, and at least one AI provider key.
 npm ci
 npm run dev
-# -> http://localhost:7000
 ```
 
-### 3. Frontend
+### 3. Frontend (from the repository root, in a second terminal)
 
 ```bash
-cp .env.example .env
 npm ci
 npm run dev
-# -> http://localhost:21000
 ```
 
-Open **http://localhost:21000**, register an account, and start an interview.
+Open **http://localhost:21000**. The frontend calls the backend at **http://localhost:7000** by default.
 
 ---
 
 ## Quick Start (Docker)
 
+The frontend source is at the repository root; Compose builds it with the root `Dockerfile`. The backend is built separately from `server/`.
+
 ```bash
 cp server/.env.example server/.env
-# edit server/.env with your AI provider key(s)
-
+# Set JWT_SECRET, JWT_REFRESH_SECRET, and at least one AI provider key.
 docker compose up --build
 ```
 
-The Docker Compose frontend is served at **http://localhost:5002**. The backend health check waits for MongoDB before the frontend starts. Keep `server/.env` local; it is ignored by Git. When using the default local Ollama provider, start Ollama on the host and
-download the configured model first:
+Open **http://localhost:5002**. The API is available at **http://localhost:7000**. MongoDB is available to the other Compose services on the internal Docker network and is not published to the host.
 
-```bash
-ollama pull qwen3:8b
+For a remote deployment, create a root-level `.env` file (it is Git-ignored) and set the public URLs used by the browser and backend CORS:
+
+```dotenv
+VITE_API_URL=https://api.example.com
+CLIENT_URL=https://app.example.com
 ```
 
-The Docker backend reaches it through `host.docker.internal`. To use Gemini
-or Grok instead, change `AI_PROVIDER` and add the corresponding key in
-`server/.env` before starting Compose.
+Then rebuild the frontend with `docker compose up --build`. Keep the backend secrets in `server/.env`; never commit either environment file.
 
-This starts:
-- MongoDB on `27017`
-- Backend on **`http://localhost:7000`**
-- Frontend on **`http://localhost:5002`**
-
-> Vite bakes `VITE_API_URL` into the static build at build time. If you change
-> the backend URL, update the `args.VITE_API_URL` in `docker-compose.yml` and
-> rebuild the `client` service.
+When using Ollama on the Docker host, set `OLLAMA_BASE_URL_DOCKER` in the root `.env` if the default host URL is not correct, and pull the configured model on the host. For cloud providers, set `AI_PROVIDER` and the relevant API key(s) in `server/.env`.
 
 ---
 

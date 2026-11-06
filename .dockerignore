@@ -1,0 +1,17 @@
+# Keep the frontend build context small and free of secrets/user data
+.git
+.gitignore
+.github
+node_modules
+**/node_modules
+dist
+**/dist
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+server
+coverage
+*.log
+.DS_Store

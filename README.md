@@ -20,7 +20,7 @@ full **MERN stack** application:
 | PDF        | pdfkit                                                |
 | Uploads    | Multer (resume PDFs/DOCX)                             |
 
-Frontend runs on **port 5002**, backend on **port 7000**.
+Local Vite frontend runs on **port 21000**, backend on **port 7000**. The Docker-served frontend is exposed on **port 5002**.
 
 ---
 
@@ -69,8 +69,8 @@ and put the connection string in `server/.env`.
 ```bash
 cd server
 cp .env.example .env
-# fill in MONGO_URI, JWT_SECRET, and at least one AI provider key
-npm install
+# fill in JWT secrets and at least one AI provider key
+npm ci
 npm run dev
 # -> http://localhost:7000
 ```
@@ -78,14 +78,13 @@ npm run dev
 ### 3. Frontend
 
 ```bash
-cd client
 cp .env.example .env
-npm install
+npm ci
 npm run dev
-# -> http://localhost:5002
+# -> http://localhost:21000
 ```
 
-Open **http://localhost:5002**, register an account, and start an interview.
+Open **http://localhost:21000**, register an account, and start an interview.
 
 ---
 
@@ -98,7 +97,7 @@ cp server/.env.example server/.env
 docker compose up --build
 ```
 
-When using the default local Ollama provider, start Ollama on the host and
+The Docker Compose frontend is served at **http://localhost:5002**. The backend health check waits for MongoDB before the frontend starts. Keep `server/.env` local; it is ignored by Git. When using the default local Ollama provider, start Ollama on the host and
 download the configured model first:
 
 ```bash
@@ -262,7 +261,7 @@ Only completed categories are scored; their weights are **normalized automatical
   automatically when it gets that specific error back.
 
 ### Setup notes
-- Run `npm install` in `/server` (adds `pdf-parse`, `mammoth`, `word-extractor`,
+- Run `npm ci` in `/server` (adds `pdf-parse`, `mammoth`, `word-extractor`,
   `express-rate-limit`, `nodemailer`) and `/client`.
 - After pulling these changes, set `JWT_REFRESH_SECRET` in `server/.env` to a
   new random string (different from `JWT_SECRET`) - see the updated

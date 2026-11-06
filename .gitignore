@@ -1,7 +1,27 @@
+# Dependencies and build output
 node_modules/
+**/node_modules/
 dist/
+coverage/
+
+# Local environment and secrets
 .env
 .env.*
-server/.env
-server/reports/*.pdf
-server/uploads/*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Runtime/user data (never commit database exports or personal data)
+server/data-dump/
+server/uploads/
+server/reports/
+*.dump
+*.bson
+*.log
+
+# Local tooling / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
